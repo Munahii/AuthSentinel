@@ -1,0 +1,21 @@
+مشروع AuthSentinel — نسخة بدون تثبيت مكتبات
+===============================================
+
+1) فك ضغط AuthSentinel_Fixed.zip
+2) افتح مجلد AuthSentinel_Fixed في VS Code
+3) من Terminal > New Terminal اكتب:
+
+   python app.py
+
+4) انتظر لين يفتح المتصفح.
+   إذا ما فتح تلقائيا، ادخل: http://127.0.0.1:8502
+
+مهم: لا تكتب pip install ولا تستخدم Streamlit في هذه النسخة.
+لا توقف أي حماية في Windows. المشروع يشتغل بدون NumPy أو pandas.
+
+إذا طلع خطأ إن port 8502 مستخدم، اضغط Ctrl+C على Terminal القديم.
+
+للاختبار:
+   python -m unittest discover -s tests -v
+
+كل البيانات التجريبية افتراضية للتعلم فقط.
