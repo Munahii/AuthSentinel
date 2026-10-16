@@ -1,7 +1,7 @@
-"""AuthSentinel local web dashboard. Runs on Python 3.10+ with no pip installs.
+"""AuthSentinel dashboard. Local CSV analyzer; public deployments are read-only demos.
 
-Start: python app.py
-Only binds to localhost. Uploaded CSV bytes remain in memory and are not saved.
+Run locally with python app.py. Public deployment: set PORT (e.g. Render).
+The public version accepts no file uploads and uses synthetic sample data only.
 """
 from __future__ import annotations
 
@@ -23,8 +23,9 @@ SAMPLE = ROOT / "data" / "sample_auth_logs.csv"
 STATIC = ROOT / "static"
 MAX_BYTES = 5 * 1024 * 1024
 MAX_EVENTS = 50000
-HOST = "127.0.0.1"
-PORT = int(os.environ.get("AUTHSENTINEL_PORT", "8502"))
+PUBLIC_DEMO = bool(os.environ.get("PORT")) or os.environ.get("AUTHSENTINEL_PUBLIC_DEMO") == "1"
+HOST = "0.0.0.0" if PUBLIC_DEMO else "127.0.0.1"
+PORT = int(os.environ.get("PORT", os.environ.get("AUTHSENTINEL_PORT", "8502")))
 
 
 def summarize(raw: bytes) -> dict:
@@ -104,9 +105,20 @@ class Handler(BaseHTTPRequestHandler):
             return self._response(200, SAMPLE.read_bytes(), "text/csv; charset=utf-8")
         else:
             return self._json({"error": "Not found"}, 404)
+        if PUBLIC_DEMO and path in ("/", "/index.html"):
+            html = file.read_text(encoding="utf-8")
+            # Read-only demo: remove the upload control, as well as server-side POST access.
+            html = html.replace('<label for="upload-input" class="btn btn-secondary" tabindex="0">↑ Upload CSV</label>', '')
+            html = html.replace("Local analysis only. No external network requests.", "Synthetic demo data only. Do not enter real or sensitive logs.")
+            html = html.replace("● DATA ANALYZED LOCALLY", "● SYNTHETIC DEMO DATA")
+            html = html.replace("LOCAL ENVIRONMENT", "PUBLIC DEMO")
+            html = html.replace("Running on localhost only", "Read-only public demo")
+            return self._response(200, html.encode("utf-8"), mime)
         return self._response(200, file.read_bytes(), mime)
 
     def do_POST(self):
+        if PUBLIC_DEMO:
+            return self._json({"error": "Public demo is read-only. Uploads are disabled."}, 403)
         if urlsplit(self.path).path != "/api/analyze":
             return self._json({"error": "Not found"}, 404)
         try:
@@ -132,10 +144,12 @@ def main():
     url = f"http://{HOST}:{PORT}"
     print("\n" + "=" * 52)
     print("AuthSentinel — Security Threat Analytics")
-    print(f"OPEN IN YOUR BROWSER: {url}")
+    print(f"Local server endpoint: {url}")
+    print("Public read-only demo" if PUBLIC_DEMO else "Local CSV analysis mode")
     print("Stop server: Ctrl + C")
     print("=" * 52 + "\n")
-    threading.Timer(1.2, lambda: webbrowser.open(url)).start()
+    if not PUBLIC_DEMO:
+        threading.Timer(1.2, lambda: webbrowser.open(url)).start()
     try:
         server.serve_forever()
     except KeyboardInterrupt:
