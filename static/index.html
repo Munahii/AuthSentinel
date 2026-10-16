@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080e19">
+  <title>AuthSentinel — Threat Analytics</title>
+  <link rel="stylesheet" href="/static/dashboard.css">
+  <script src="/static/dashboard.js" defer></script>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-logo">⬡</div><div><strong>Auth<span>Sentinel</span></strong><small>SECURITY OPERATIONS</small></div></div>
+    <div class="side-label">WORKSPACE</div>
+    <nav class="nav" aria-label="Dashboard pages">
+      <button class="nav-btn active" data-tab="overview"><span>▦</span> Overview</button>
+      <button class="nav-btn" data-tab="findings"><span>⚑</span> Threat findings <b id="nav-alerts">0</b></button>
+      <button class="nav-btn" data-tab="logs"><span>≡</span> Authentication logs</button>
+      <button class="nav-btn" data-tab="method"><span>◇</span> Detection rules</button>
+    </nav>
+    <div class="side-label source-title">DATA SOURCE</div>
+    <div class="source-box">
+      <span class="source-dot"></span><strong id="source-label">Synthetic demo</strong>
+      <p>Local analysis only. No external network requests.</p>
+      <button id="sample-btn" class="btn btn-quiet">↻ Reload demo logs</button>
+      <label for="upload-input" class="btn btn-secondary" tabindex="0">↑ Upload CSV</label>
+      <input id="upload-input" type="file" accept=".csv,text/csv" hidden>
+      <button id="download-sample" class="text-button">↓ Download sample CSV</button>
+    </div>
+    <div class="sidebar-bottom"><span class="live-dot"></span> LOCAL ENVIRONMENT <small>Python · Standard Library</small></div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar"><div><span class="breadcrumb">Security monitoring</span><span class="slash">/</span><span id="current-section">Overview</span></div><div class="topbar-right"><span class="demo-pill"><span class="live-dot"></span> DEMO ENVIRONMENT</span><span class="avatar">AS</span></div></header>
+    <div class="content">
+      <div id="error" class="error" role="alert" hidden></div>
+      <div id="invalid" class="notice" hidden></div>
+      <div class="hero"><div><span class="eyebrow">AUTHENTICATION INTELLIGENCE PLATFORM</span><h1>Threat monitoring <span>dashboard.</span></h1><p>Detect suspicious sign-in patterns, investigate risky sources, and export actionable findings.</p></div><div class="hero-icon">⬡<div class="hero-icon-inner">⌁</div></div></div>
+      <div class="section-heading"><div><h2>Security posture</h2><p>A live snapshot of the selected authentication log dataset.</p></div><span class="time-pill">● DATA ANALYZED LOCALLY</span></div>
+      <div class="metrics">
+        <div class="metric"><div class="metric-top">TOTAL SIGN-INS <span class="metric-icon purple">≡</span></div><strong id="total-metric">—</strong><small>Authentication events</small></div>
+        <div class="metric"><div class="metric-top">FAILED ATTEMPTS <span class="metric-icon orange">↗</span></div><strong id="failed-metric">—</strong><small id="failure-percent">Failed logins</small></div>
+        <div class="metric"><div class="metric-top">UNIQUE SOURCES <span class="metric-icon blue">◎</span></div><strong id="ips-metric">—</strong><small>Distinct source IPs</small></div>
+        <div class="metric"><div class="metric-top">ACTIVE FINDINGS <span class="metric-icon red">⚑</span></div><strong id="findings-metric">—</strong><small>Rule-based detections</small></div>
+        <div class="metric"><div class="metric-top">HEURISTIC RISK <span class="metric-icon violet">⬡</span></div><strong id="risk-metric">—</strong><small>Illustrative · Not validated</small></div>
+      </div>
+      <section class="tab" id="tab-overview">
+        <div class="charts"><article class="panel"><div class="panel-header"><div><h3>Authentication activity</h3><p>Successful vs. failed logins by hour (UTC)</p></div><div class="legend"><i class="leg-blue"></i> Success <i class="leg-pink"></i> Failed</div></div><div id="activity-chart" class="activity-chart"></div></article>
+        <article class="panel"><div class="panel-header"><div><h3>Finding breakdown</h3><p>Detected threat categories</p></div></div><div id="donut-container" class="donut-container"></div><div id="category-legend" class="category-legend"></div></article></div>
+        <article class="panel"><div class="panel-header"><div><h3>Top source IP addresses</h3><p>Ranked by failed authentication attempts</p></div><button class="btn btn-quiet" data-switch="logs">View logs →</button></div><div class="table-wrap"><table><thead><tr><th>IP ADDRESS</th><th>TOTAL EVENTS</th><th>FAILED LOGINS</th><th>FAILURE INTENSITY</th></tr></thead><tbody id="ip-table"></tbody></table></div></article>
+      </section>
+      <section class="tab" id="tab-findings" hidden>
+        <article class="panel"><div class="panel-header"><div><h3>Prioritized threat detections</h3><p>Review heuristics before treating any alert as a confirmed attack.</p></div><button id="export-findings" class="btn btn-primary">↓ Export findings CSV</button></div>
+        <div class="filter-row"><span>SEVERITY</span><button class="filter active" data-severity="All">All</button><button class="filter" data-severity="Critical">Critical</button><button class="filter" data-severity="High">High</button><button class="filter" data-severity="Medium">Medium</button></div>
+        <div id="findings-list" class="findings-list"></div></article>
+      </section>
+      <section class="tab" id="tab-logs" hidden>
+        <article class="panel"><div class="panel-header"><div><h3>Authentication event explorer</h3><p>Showing up to 250 recent parsed log entries</p></div><div class="actions"><input id="log-search" class="search" placeholder="Search IP or account..." aria-label="Search logs"><button id="export-logs" class="btn btn-primary">↓ Export logs</button></div></div>
+        <div class="table-wrap"><table><thead><tr><th>TIMESTAMP (UTC)</th><th>IP ADDRESS</th><th>USERNAME</th><th>STATUS</th></tr></thead><tbody id="logs-table"></tbody></table></div></article>
+      </section>
+      <section class="tab" id="tab-method" hidden>
+        <div class="panel method-panel"><h3>How threat detection works</h3><p>Transparent, rule-based indicators mapped to MITRE ATT&amp;CK. Educational demonstration only.</p>
+          <div class="method-grid"><article><span class="method-kicker">RULE 01 · T1110</span><h4>Brute Force</h4><p>6+ failures against one account from one source IP within 10 minutes.</p><a href="https://attack.mitre.org/techniques/T1110/" target="_blank" rel="noopener noreferrer">MITRE documentation ↗</a></article>
+          <article><span class="method-kicker">RULE 02 · T1110.003</span><h4>Password Spraying</h4><p>8+ failures targeting 5+ unique accounts from one IP within 10 minutes.</p><a href="https://attack.mitre.org/techniques/T1110/003/" target="_blank" rel="noopener noreferrer">MITRE documentation ↗</a></article>
+          <article><span class="method-kicker">RULE 03 · T1110</span><h4>Success After Failures</h4><p>Successful login after 4+ failures on one account from the same IP within 15 minutes.</p><a href="https://attack.mitre.org/techniques/T1110/" target="_blank" rel="noopener noreferrer">MITRE documentation ↗</a></article></div>
+          <div class="notice static-notice">Important: These are heuristics, not verified incidents. Shared IPs, test traffic, or legitimate retries can trigger false positives. The risk number is an illustrative summary, not a validated security assessment.</div>
+          <div class="method-foot">CSV columns: <code>timestamp,ip_address,username,status</code> · Status: <code>success</code> or <code>failed</code> · ISO 8601 timestamps.</div>
+        </div>
+      </section>
+      <footer>AuthSentinel v1.1 · Portfolio project · All demo identities and addresses are synthetic · Running on localhost only</footer>
+    </div>
+  </main>
+</div>
+</body>
+</html>
