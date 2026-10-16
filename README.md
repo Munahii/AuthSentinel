@@ -84,3 +84,6 @@ AuthSentinel_Fixed/
 This is a learning/demo tool, not a production SIEM, intrusion detection or protection product. It analyzes uploaded CSV log content **locally**; it does not scan networks, interact with real accounts or block IP addresses. It only listens on `127.0.0.1` to avoid exposure to other devices. Do not upload secrets or sensitive business logs in a publicly deployed copy.
 
 MIT License.
+## Dashboard Preview
+
+![AuthSentinel Dashboard](screenshots/authsentinel-overview.png)
